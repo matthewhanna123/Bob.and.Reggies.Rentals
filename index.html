@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bob & Reggie | Photo Capture</title>
+    <style>
+        :root {
+            --navy: #1a2b3c;
+            --sky-blue: #c5dbe9;
+            --cream: #fdf5e6;
+            --white: #ffffff;
+        }
+
+        body { 
+            background: var(--cream); 
+            color: var(--navy); 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; 
+            padding-bottom: 100px; 
+        }
+
+        /* Header & Toggle */
+        .header { 
+            background: var(--white); 
+            padding: 10px 15px; 
+            border-bottom: 3px solid var(--sky-blue); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo-img { height: 50px; }
+        .direct-link { font-weight: bold; text-decoration: none; color: var(--navy); font-size: 14px; }
+
+        .trip-toggle {
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            gap: 10px;
+        }
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--navy);
+            background: var(--white);
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .toggle-btn.active { background: var(--navy); color: var(--white); }
+
+        /* Grid System */
+        .section-title { 
+            padding: 20px 15px 5px; 
+            font-size: 18px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--sky-blue);
+            margin-bottom: 10px;
+        }
+        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+        
+        .card { 
+            background: var(--white); 
+            border-radius: 8px; 
+            aspect-ratio: 1/1; 
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            border: 1px solid var(--sky-blue); 
+            overflow: hidden; 
+        }
+        
+        .placeholder-img { width: 60%; opacity: 0.3; }
+        .captured-img { width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; top: 0; z-index: 2; }
+        
+        .label { 
+            position: absolute; bottom: 0; width: 100%;
+            background: rgba(26, 43, 60, 0.8); color: white;
+            font-size: 9px; padding: 4px 0; text-align: center; z-index: 3;
+        }
+        .add-btn { 
+            position: absolute; top: 10px; right: 10px; 
+            background: var(--sky-blue); color: var(--navy); 
+            width: 25px; height: 25px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; z-index: 4; 
+        }
+
+        .submit-area { position: fixed; bottom: 0; width: 100%; padding: 15px; box-sizing: border-box; background: var(--white); border-top: 2px solid var(--sky-blue); }
+        .btn-submit { width: 100%; background: var(--navy); color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <img src="Bob&ReggieRentalsLLCLogo.png" class="logo-img" alt="Logo">
+    <a href="direct-rentals.html" class="direct-link">DIRECT BOOKING →</a>
+</div>
+
+<div class="trip-toggle">
+    <button class="toggle-btn active" onclick="setTripType('Pre-Trip', this)">PRE-TRIP</button>
+    <button class="toggle-btn" onclick="setTripType('Post-Trip', this)">POST-TRIP</button>
+</div>
+
+<!-- Section: Basics -->
+<div class="section-title">The Basics</div>
+<div class="photo-grid">
+    <div class="card" onclick="openCam('in-odo')">
+        <img src="placeholder-icon.png" class="placeholder-img">
+        <div class="label">Odometer</div><div class="add-btn">+</div>
+        <img id="img-odo" class="captured-img">
+        <input type="file" id="in-odo" accept="image/*" capture="camera" hidden onchange="pv(this, 'img-odo')">
+    </div>
+    <div class="card" onclick="openCam('in-bat')">
+        <img src="placeholder-icon.png" class="placeholder-img">
+        <div class="label">Battery Level</div><div class="add-btn">+</div>
+        <img id="img-bat" class="captured-img">
+        <input type="file" id="in-bat" accept="image/*" capture="camera" hidden onchange="pv(this, 'img-bat')">
+    </div>
+</div>
+
+<!-- Section: Exterior -->
+<div class="section-title">Exterior Walkaround</div>
+<div class="photo-grid" id="exterior-grid">
+    <!-- Generated via JS for brevity -->
+</div>
+
+<!-- Section: Interior -->
+<div class="section-title">Interior & Cargo</div>
+<div class="photo-grid" id="interior-grid">
+    <!-- Generated via JS for brevity -->
+</div>
+
+<div class="submit-area">
+    <button class="btn-submit" onclick="submitPhotos()">SUBMIT TRIP PHOTOS</button>
+</div>
+
+<script>
+    let currentTripType = 'Pre-Trip';
+
+    function setTripType(type, btn) {
+        currentTripType = type;
+        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    const exteriorLabels = [
+        "Front", "Hood", "Front Driver Corner", "Front Driver Panel", "Front Driver Wheel", 
+        "Front Driver Door", "Back Driver Door", "Back Driver Panel", "Back Driver Wheel", 
+        "Back Driver Corner", "Rear", "Back Pass Corner", "Back Pass Panel", 
+        "Back Pass Wheel", "Back Pass Door", "Front Pass Door", "Front Pass Panel", 
+        "Front Pass Wheel", "Front Pass Corner"
+    ];
+
+    const interiorLabels = [
+        "Driver Seat", "Driver Door Panel", "Driver Floor Mat", "Dash View", 
+        "Console Open", "Console Closed", "Back Seat (Up)", "Back Seat (Down)", 
+        "Back Door Panel", "Back Floor Mat", "Back View - Front", "Back Center Console",
+        "Middle Seat", "Middle Floor Mat", "Middle Seat View", "Pass Back View",
+        "Pass Back Floor Mat", "Pass Back Door Panel", "Pass Back Seat (Down)",
+        "Pass Back Seat (Up)", "Passenger Seat", "Passenger Door Panel", 
+        "Passenger Floor Mat", "Pass Dash", "Pass Console Open", "Pass Console Closed",
+        "Glove Box(es)", "Trunk", "Frunk"
+    ];
+
+    function createCards(labels, containerId) {
+        const container = document.getElementById(containerId);
+        labels.forEach((label, index) => {
+            const id = containerId + index;
+            container.innerHTML += `
+                <div class="card" onclick="openCam('in-${id}')">
+                    <img src="placeholder-icon.png" class="placeholder-img">
+                    <div class="label">${label}</div><div class="add-btn">+</div>
+                    <img id="img-${id}" class="captured-img">
+                    <input type="file" id="in-${id}" accept="image/*" capture="camera" hidden onchange="pv(this, 'img-${id}')">
+                </div>`;
+        });
+    }
+
+    createCards(exteriorLabels, 'exterior-grid');
+    createCards(interiorLabels, 'interior-grid');
+
+    function openCam(id) { document.getElementById(id).click(); }
+    
+    function pv(input, imgId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById(imgId);
+                img.src = e.target.result;
+                img.style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function submitPhotos() {
+        alert(currentTripType + " photos captured! In a real app, we would now upload these to your server.");
+    }
+</script>
+</body>
+</html>
