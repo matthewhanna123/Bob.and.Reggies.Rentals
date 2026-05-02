@@ -148,41 +148,57 @@
         btn.classList.add('active');
     }
 
-    const exteriorLabels = [
-        "Front", "Hood", "Front Driver Corner", "Front Driver Panel", "Front Driver Wheel", 
-        "Front Driver Door", "Back Driver Door", "Back Driver Panel", "Back Driver Wheel", 
-        "Back Driver Corner", "Rear", "Back Pass Corner", "Back Pass Panel", 
-        "Back Pass Wheel", "Back Pass Door", "Front Pass Door", "Front Pass Panel", 
-        "Front Pass Wheel", "Front Pass Corner"
+    // UPDATED: Added filenames to the labels
+    const exteriorData = [
+        { label: "Front", img: "front.png" },
+        { label: "Hood", img: "hood.png" },
+        { label: "Front Driver Corner", img: "front-dr-corner.png" },
+        { label: "Front Driver Panel", img: "front-dr-panel.png" },
+        { label: "Front Driver Wheel", img: "front-dr-wheel.png" },
+        { label: "Front Driver Door", img: "front-dr-door.png" },
+        { label: "Back Driver Door", img: "back-dr-door.png" },
+        { label: "Back Driver Panel", img: "back-dr-panel.png" },
+        { label: "Back Driver Wheel", img: "back-dr-wheel.png" },
+        { label: "Back Driver Corner", img: "back-dr-corner.png" },
+        { label: "Rear", img: "rear.png" },
+        { label: "Back Pass Corner", img: "back-pass-corner.png" },
+        { label: "Back Pass Panel", img: "back-pass-panel.png" },
+        { label: "Back Pass Wheel", img: "back-pass-wheel.png" },
+        { label: "Back Pass Door", img: "back-pass-door.png" },
+        { label: "Front Pass Door", img: "front-pass-door.png" },
+        { label: "Front Pass Panel", img: "front-pass-panel.png" },
+        { label: "Front Pass Wheel", img: "front-pass-wheel.png" },
+        { label: "Front Pass Corner", img: "front-pass-corner.png" }
     ];
 
-    const interiorLabels = [
-        "Driver Seat", "Driver Door Panel", "Driver Floor Mat", "Dash View", 
-        "Console Open", "Console Closed", "Back Seat (Up)", "Back Seat (Down)", 
-        "Back Door Panel", "Back Floor Mat", "Back View - Front", "Back Center Console",
-        "Middle Seat", "Middle Floor Mat", "Middle Seat View", "Pass Back View",
-        "Pass Back Floor Mat", "Pass Back Door Panel", "Pass Back Seat (Down)",
-        "Pass Back Seat (Up)", "Passenger Seat", "Passenger Door Panel", 
-        "Passenger Floor Mat", "Pass Dash", "Pass Console Open", "Pass Console Closed",
-        "Glove Box(es)", "Trunk", "Frunk"
+    const interiorData = [
+        { label: "Driver Seat", img: "dr-seat.png" },
+        { label: "Driver Door Panel", img: "dr-door.png" },
+        { label: "Driver Floor Mat", img: "dr-mat.png" },
+        { label: "Dash View", img: "dash.png" },
+        { label: "Console Open", img: "console-open.png" },
+        { label: "Console Closed", img: "console-closed.png" },
+        { label: "Trunk", img: "trunk.png" },
+        { label: "Frunk", img: "frunk.png" }
+        // Add more here following the same pattern
     ];
 
-    function createCards(labels, containerId) {
+    function createCards(data, containerId) {
         const container = document.getElementById(containerId);
-        labels.forEach((label, index) => {
+        data.forEach((item, index) => {
             const id = containerId + index;
             container.innerHTML += `
                 <div class="card" onclick="openCam('in-${id}')">
-                    <img src="placeholder-icon.png" class="placeholder-img">
-                    <div class="label">${label}</div><div class="add-btn">+</div>
+                    <img src="${item.img}" class="placeholder-img" onerror="this.src='placeholder-icon.png'">
+                    <div class="label">${item.label}</div><div class="add-btn">+</div>
                     <img id="img-${id}" class="captured-img">
                     <input type="file" id="in-${id}" accept="image/*" capture="camera" hidden onchange="pv(this, 'img-${id}')">
                 </div>`;
         });
     }
 
-    createCards(exteriorLabels, 'exterior-grid');
-    createCards(interiorLabels, 'interior-grid');
+    createCards(exteriorData, 'exterior-grid');
+    createCards(interiorData, 'interior-grid');
 
     function openCam(id) { document.getElementById(id).click(); }
     
@@ -193,13 +209,11 @@
                 const img = document.getElementById(imgId);
                 img.src = e.target.result;
                 img.style.display = 'block';
+                // Hide the guide image when photo is taken
+                input.parentElement.querySelector('.placeholder-img').style.display = 'none';
             }
             reader.readAsDataURL(input.files[0]);
         }
-    }
-
-    function submitPhotos() {
-        alert(currentTripType + " photos captured! In a real app, we would now upload these to your server.");
     }
 </script>
 </body>
