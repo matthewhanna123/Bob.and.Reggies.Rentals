@@ -9,7 +9,17 @@
         :root { --navy: #1a2b3c; --sky-blue: #c5dbe9; --cream: #fdf5e6; --white: #ffffff; }
         body { background: var(--cream); color: var(--navy); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 40px; }
         
-        .header { background: var(--white); padding: 15px; border-bottom: 3px solid var(--sky-blue); text-align: left; }
+        .header { 
+    background: var(--white); 
+    padding: 10px 15px; 
+    border-bottom: 3px solid var(--sky-blue); 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    position: sticky; 
+    top: 0; 
+    z-index: 1000;
+}        
         .logo-img { height: 120px; }
         
         .form-container { padding: 20px; max-width: 500px; margin: auto; }
