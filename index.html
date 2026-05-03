@@ -6,6 +6,10 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="Bob&ReggieRentalsLLCLogo.png">
     <title>Bob & Reggie's Rentals | Intake Form</title>
+    
+    <!-- PDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
         :root {
             --navy: #1a2b3c;
@@ -24,16 +28,16 @@
 
         /* Header & Toggle */
         .header { 
-    background: var(--white); 
-    padding: 10px 15px; 
-    border-bottom: 3px solid var(--sky-blue); 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center;
-    position: sticky; 
-    top: 0; 
-    z-index: 1000;
-}
+            background: var(--white); 
+            padding: 10px 15px; 
+            border-bottom: 3px solid var(--sky-blue); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            position: sticky; 
+            top: 0; 
+            z-index: 1000;
+        }
         .logo-img { height: 120px; }
         .direct-link { font-weight: bold; text-decoration: none; color: var(--navy); font-size: 14px; }
 
@@ -95,80 +99,75 @@
         }
 
         .submit-area { position: fixed; bottom: 0; width: 100%; padding: 15px; box-sizing: border-box; background: var(--white); border-top: 2px solid var(--sky-blue); z-index: 999;}
-        .btn-submit { width: 100%; background: var(--navy); color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; font-size: 16px; }
+        .btn-submit { width: 100%; background: var(--navy); color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; font-size: 16px; cursor: pointer;}
     </style>
 </head>
 <body>
-    <!-- 1. Locking others out -->
     <div id="access-denied" style="display:none; text-align:center; padding:50px; font-family: sans-serif;">
         <h1>Access Denied</h1>
         <p>This is a private portal for Bob & Reggie Rentals LLC.</p>
     </div>
 
-    <!-- 2. This is to ensure no one can see this part; this is closed after the submit section before the script-->
     <div id="main-content" style="display:none;">
 
-<div class="header">
-    <img src="Bob&ReggieRentalsLLCLogo.png" class="logo-img" alt="Logo">
-    <a href="direct-rentals.html" class="direct-link">DIRECT BOOKING →</a>
-</div>
+        <div class="header">
+            <img src="Bob&ReggieRentalsLLCLogo.png" class="logo-img" alt="Logo">
+            <a href="direct-rentals.html" class="direct-link">DIRECT BOOKING →</a>
+        </div>
 
-<div class="trip-toggle">
-    <button class="toggle-btn active" onclick="setTripType('Pre-Trip', this)">PRE-TRIP</button>
-    <button class="toggle-btn" onclick="setTripType('Post-Trip', this)">POST-TRIP</button>
-</div>
+        <div class="trip-toggle">
+            <button class="toggle-btn active" onclick="setTripType('Pre-Trip', this)">PRE-TRIP</button>
+            <button class="toggle-btn" onclick="setTripType('Post-Trip', this)">POST-TRIP</button>
+        </div>
 
-<!-- Section: Basics -->
-<div class="section-title">The Basics</div>
-<div class="photo-grid">
-    <div class="card" onclick="openCam('in-odo')">
-        <img src="placeholder-icon.png" class="placeholder-img">
-        <div class="label">Odometer</div><div class="add-btn">+</div>
-        <img id="img-odo" class="captured-img">
-        <input type="file" id="in-odo" accept="image/*" capture="camera" hidden onchange="pv(this, 'img-odo')">
+        <div class="form-container"> <!-- Wrapper for PDF capture -->
+            <div class="section-title">The Basics</div>
+            <div class="photo-grid">
+                <div class="card" onclick="openCam('in-odo')">
+                    <img src="placeholder-icon.png" class="placeholder-img">
+                    <div class="label">Odometer</div><div class="add-btn">+</div>
+                    <img id="img-odo" class="captured-img">
+                    <input type="file" id="in-odo" accept="image/*" capture="camera" hidden onchange="pv(this, 'img-odo')">
+                </div>
+                <div class="card" onclick="openCam('in-bat')">
+                    <img src="placeholder-icon.png" class="placeholder-img">
+                    <div class="label">Battery Level</div><div class="add-btn">+</div>
+                    <img id="img-bat" class="captured-img">
+                    <input type="file" id="in-bat" accept="image/*" capture="camera" hidden onchange="pv(this, 'img-bat')">
+                </div>
+            </div>
+
+            <div class="section-title">Exterior Walkaround</div>
+            <div class="photo-grid" id="exterior-grid"></div>
+
+            <div class="section-title">Interior & Cargo</div>
+            <div class="photo-grid" id="interior-grid"></div>
+        </div>
+
+        <div class="submit-area">
+            <button class="btn-submit" id="submit-btn" onclick="submitPhotos()">SUBMIT TRIP PHOTOS</button>
+        </div> 
     </div>
-    <div class="card" onclick="openCam('in-bat')">
-        <img src="placeholder-icon.png" class="placeholder-img">
-        <div class="label">Battery Level</div><div class="add-btn">+</div>
-        <img id="img-bat" class="captured-img">
-        <input type="file" id="in-bat" accept="image/*" capture="camera" hidden onchange="pv(this, 'img-bat')">
-    </div>
-</div>
 
-<!-- Section: Exterior -->
-<div class="section-title">Exterior Walkaround</div>
-<div class="photo-grid" id="exterior-grid">
-    <!-- Generated via JS for brevity -->
-</div>
-
-<!-- Section: Interior -->
-<div class="section-title">Interior & Cargo</div>
-<div class="photo-grid" id="interior-grid">
-    <!-- Generated via JS for brevity -->
-</div>
-
-<div class="submit-area">
-    <button class="btn-submit" onclick="submitPhotos()">SUBMIT TRIP PHOTOS</button>
-</div> 
-</div>
 <script>
-    // ---  This is the gate to ensure we have the lock key ---
-        (function() {
-            const authKey = 'br_rentals_authorized';
-            const mainContent = document.getElementById('main-content');
-            const accessDenied = document.getElementById('access-denied');
+    // --- Authorization Check ---
+    (function() {
+        const authKey = 'br_rentals_authorized';
+        const mainContent = document.getElementById('main-content');
+        const accessDenied = document.getElementById('access-denied');
 
-            if (window.location.hash === '#authorize') {
-                localStorage.setItem(authKey, 'true');
-                history.replaceState("", document.title, window.location.pathname);
-            }
+        if (window.location.hash === '#authorize') {
+            localStorage.setItem(authKey, 'true');
+            history.replaceState("", document.title, window.location.pathname);
+        }
 
-            if (localStorage.getItem(authKey) === 'true') {
-                mainContent.style.display = 'block';
-            } else {
-                accessDenied.style.display = 'block';
-            }
-        })();
+        if (localStorage.getItem(authKey) === 'true') {
+            mainContent.style.display = 'block';
+        } else {
+            accessDenied.style.display = 'block';
+        }
+    })();
+
     let currentTripType = 'Pre-Trip';
 
     function setTripType(type, btn) {
@@ -177,43 +176,21 @@
         btn.classList.add('active');
     }
 
-    // UPDATED: Added filenames to the labels
     const exteriorData = [
-        { label: "Front", img: "front.png" },
-        { label: "Hood", img: "hood.png" },
-        { label: "Front Driver Corner", img: "front-dr-corner.png" },
-        { label: "Front Driver Panel", img: "front-dr-panel.png" },
-        { label: "Front Driver Wheel", img: "front-dr-wheel.png" },
-        { label: "Front Driver Door", img: "front-dr-door.png" },
-        { label: "Back Driver Door", img: "back-dr-door.png" },
-        { label: "Back Driver Panel", img: "back-dr-panel.png" },
-        { label: "Back Driver Wheel", img: "back-dr-wheel.png" },
-        { label: "Back Driver Corner", img: "back-dr-corner.png" },
-        { label: "Rear", img: "rear.png" },
-        { label: "Back Pass Corner", img: "back-pass-corner.png" },
-        { label: "Back Pass Panel", img: "back-pass-panel.png" },
-        { label: "Back Pass Wheel", img: "back-pass-wheel.png" },
-        { label: "Back Pass Door", img: "back-pass-door.png" },
-        { label: "Front Pass Door", img: "front-pass-door.png" },
-        { label: "Front Pass Panel", img: "front-pass-panel.png" },
-        { label: "Front Pass Wheel", img: "front-pass-wheel.png" },
-        { label: "Front Pass Corner", img: "front-pass-corner.png" },
-        { label: "Undercarriage Front", img: "under-front.png"},
-        { label: "Undercarriage Mid-Front", img: "under-mid-front.png"},
-        { label: "Undercarriage Mid-Back", img: "under-mid-back.png"},
-        { label: "Undercarriage Back", img: "under-back.png"}
+        { label: "Front", img: "front.png" }, { label: "Hood", img: "hood.png" }, { label: "Front Driver Corner", img: "front-dr-corner.png" },
+        { label: "Front Driver Panel", img: "front-dr-panel.png" }, { label: "Front Driver Wheel", img: "front-dr-wheel.png" }, { label: "Front Driver Door", img: "front-dr-door.png" },
+        { label: "Back Driver Door", img: "back-dr-door.png" }, { label: "Back Driver Panel", img: "back-dr-panel.png" }, { label: "Back Driver Wheel", img: "back-dr-wheel.png" },
+        { label: "Back Driver Corner", img: "back-dr-corner.png" }, { label: "Rear", img: "rear.png" }, { label: "Back Pass Corner", img: "back-pass-corner.png" },
+        { label: "Back Pass Panel", img: "back-pass-panel.png" }, { label: "Back Pass Wheel", img: "back-pass-wheel.png" }, { label: "Back Pass Door", img: "back-pass-door.png" },
+        { label: "Front Pass Door", img: "front-pass-door.png" }, { label: "Front Pass Panel", img: "front-pass-panel.png" }, { label: "Front Pass Wheel", img: "front-pass-wheel.png" },
+        { label: "Front Pass Corner", img: "front-pass-corner.png" }, { label: "Undercarriage Front", img: "under-front.png"}, { label: "Undercarriage Mid-Front", img: "under-mid-front.png"},
+        { label: "Undercarriage Mid-Back", img: "under-mid-back.png"}, { label: "Undercarriage Back", img: "under-back.png"}
     ];
 
     const interiorData = [
-        { label: "Driver Seat", img: "dr-seat.png" },
-        { label: "Driver Door Panel", img: "dr-door.png" },
-        { label: "Driver Floor Mat", img: "dr-mat.png" },
-        { label: "Dash View", img: "dash.png" },
-        { label: "Console Open", img: "console-open.png" },
-        { label: "Console Closed", img: "console-closed.png" },
-        { label: "Trunk", img: "trunk.png" },
-        { label: "Frunk", img: "frunk.png" }
-        // Add more here following the same pattern
+        { label: "Driver Seat", img: "dr-seat.png" }, { label: "Driver Door Panel", img: "dr-door.png" }, { label: "Driver Floor Mat", img: "dr-mat.png" },
+        { label: "Dash View", img: "dash.png" }, { label: "Console Open", img: "console-open.png" }, { label: "Console Closed", img: "console-closed.png" },
+        { label: "Trunk", img: "trunk.png" }, { label: "Frunk", img: "frunk.png" }
     ];
 
     function createCards(data, containerId) {
@@ -225,7 +202,7 @@
                     <img src="${item.img}" class="placeholder-img" onerror="this.src='placeholder-icon.png'">
                     <div class="label">${item.label}</div><div class="add-btn">+</div>
                     <img id="img-${id}" class="captured-img">
-                    <input type="file" id="in-${id}" accept="image/*" capture="camera" hidden onchange="pv(this, 'img-${id}')">
+                    <input type="file" id="in-${id}" data-label="${item.label}" accept="image/*" capture="camera" hidden onchange="pv(this, 'img-${id}')">
                 </div>`;
         });
     }
@@ -242,10 +219,65 @@
                 const img = document.getElementById(imgId);
                 img.src = e.target.result;
                 img.style.display = 'block';
-                // Hide the guide image when photo is taken
                 input.parentElement.querySelector('.placeholder-img').style.display = 'none';
             }
             reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // --- Submission Logic ---
+    async function submitPhotos() {
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxtl_ppBeHh83wEdCIVHXuJ0TCX1MYEu7ygfbbOLvIXuCszRab1Svk7U4g3Ac4orZ95/exec';
+        const btn = document.getElementById('submit-btn');
+        
+        btn.innerText = "UPLOADING TO GOOGLE...";
+        btn.disabled = true;
+
+        try {
+            // 1. Generate PDF
+            const element = document.querySelector('.form-container');
+            const pdfBase64 = await html2pdf().from(element).outputPdf('datauristring').then(uri => uri.split(',')[1]);
+
+            // 2. Collect all photos
+            const fileData = [];
+            const allInputs = document.querySelectorAll('input[type="file"]');
+            
+            for (const input of allInputs) {
+                if (input.files[0]) {
+                    const base64 = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.readAsDataURL(input.files[0]);
+                    });
+                    fileData.push({
+                        name: (input.getAttribute('data-label') || input.id) + ".jpg",
+                        type: "image/jpeg",
+                        base64: base64
+                    });
+                }
+            }
+
+            // 3. Send Payload
+            const formData = new FormData();
+            formData.append('tripType', currentTripType);
+            formData.append('pdfBase64', pdfBase64);
+            formData.append('fileData', JSON.stringify(fileData));
+
+            const response = await fetch(scriptURL, { method: 'POST', body: formData });
+            const result = await response.text();
+
+            if (result === "Success") {
+                alert("Upload Complete! " + currentTripType + " files saved to Drive.");
+                location.reload();
+            } else {
+                throw new Error(result);
+            }
+
+        } catch (err) {
+            alert("Upload failed. Please check connection and try again.");
+            console.error(err);
+            btn.innerText = "SUBMIT TRIP PHOTOS";
+            btn.disabled = false;
         }
     }
 </script>
