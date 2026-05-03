@@ -119,6 +119,7 @@
         <canvas id="sig-canvas"></canvas>
         <button class="btn-clear" onclick="clearSig()">Clear Signature</button>
 
+        <!-- ACTION BUTTON TRIGGER -->
         <button id="pay-button" class="btn-pay">PAY VIA SQUARE</button>
     </div>
 </div>
@@ -144,16 +145,12 @@
         let total = 0;
         let days = 0;
         let current = new Date(start);
-
-        // Holidays 2026
         const holidays = ["2026-05-25", "2026-09-07", "2026-11-26", "2026-12-25"];
 
         while (current <= end) {
             days++;
-            const dayOfWeek = current.getDay(); // 0=Sun, 5=Fri, 6=Sat
+            const dayOfWeek = current.getDay(); 
             const dateStr = current.toISOString().split('T')[0];
-
-            // If Holiday OR Fri/Sat/Sun -> $0.75. Else (Mon-Thu) -> $0.50
             if (holidays.includes(dateStr) || [0, 5, 6].includes(dayOfWeek)) {
                 total += 0.75;
             } else {
@@ -162,7 +159,6 @@
             current.setDate(current.getDate() + 1);
         }
 
-        // Apply Multi-Day Discounts
         let discount = 1.0;
         if (days >= 5) discount = 0.80;
         else if (days === 4) discount = 0.85;
@@ -181,6 +177,7 @@
         btn.style.pointerEvents = checked ? "auto" : "none";
     }
 
+    // --- CAMERA & PREVIEW ---
     function openCam(id) { document.getElementById(id).click(); }
     function pv(input, imgId) {
         if (input.files && input.files[0]) {
@@ -194,7 +191,7 @@
         }
     }
 
-    // Signature Logic
+    // --- SIGNATURE CANVAS ---
     const canvas = document.getElementById('sig-canvas');
     const ctx = canvas.getContext('2d');
     let drawing = false;
@@ -210,6 +207,80 @@
     canvas.addEventListener('touchmove', (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
     canvas.addEventListener('touchend', () => drawing = false);
     function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+    // --- MASTER SUBMISSION LOGIC ---
+    async function processEverything() {
+        const payBtn = document.getElementById('pay-button');
+        const name = document.getElementById('cust-name').value;
+        const email = document.getElementById('cust-email').value;
+        const start = document.getElementById('start-date').value;
+        const end = document.getElementById('end-date').value;
+
+        if (!email || !start || !end) {
+            alert("Please fill in all fields before paying.");
+            return;
+        }
+
+        payBtn.innerText = "UPLOADING DOCUMENTS...";
+        payBtn.style.background = "#888";
+        payBtn.style.pointerEvents = "none";
+
+        // Gather DL Images
+        const images = [];
+        ['img-dl-f', 'img-dl-b'].forEach(id => {
+            const src = document.getElementById(id).src;
+            if (src && src.startsWith('data:')) {
+                images.push({
+                    name: id + ".png",
+                    type: "image/png",
+                    base64: src.split(',')[1]
+                });
+            }
+        });
+
+        // Capture Signature
+        const sigBase64 = canvas.toDataURL("image/png").split(',')[1];
+
+        const payload = {
+            name: name,
+            email: email,
+            start: start,
+            end: end,
+            images: images,
+            pdfBase64: sigBase64 
+        };
+
+        // Execution Step 1: Securely upload documents to Google Drive
+        google.script.run.withSuccessHandler((uploadRes) => {
+            if (uploadRes.success) {
+                payBtn.innerText = "REDIRECTING TO SQUARE...";
+                
+                // Execution Step 2: Generate Square Sandbox Checkout Link
+                google.script.run.withSuccessHandler((payRes) => {
+                    if (payRes.success) {
+                        window.location.href = payRes.url;
+                    } else {
+                        alert("Square Error: " + payRes.error);
+                        resetButton();
+                    }
+                }).createCheckout(payload);
+                
+            } else {
+                alert("Drive Upload Error: " + uploadRes.error);
+                resetButton();
+            }
+        }).uploadFiles(payload);
+    }
+
+    function resetButton() {
+        const payBtn = document.getElementById('pay-button');
+        payBtn.innerText = "PAY VIA SQUARE";
+        payBtn.style.background = "#422dbe";
+        payBtn.style.pointerEvents = "auto";
+    }
+
+    // Attach master process to the button
+    document.getElementById('pay-button').addEventListener('click', processEverything);
 </script>
 
 </body>
