@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="icon" type="image/png" href="favicon.png">
     <title>Direct Booking | Bob & Reggie</title>
     <style>
         :root { --navy: #1a2b3c; --sky-blue: #c5dbe9; --cream: #fdf5e6; --white: #ffffff; }
@@ -12,7 +11,7 @@
         .header { background: var(--white); padding: 10px 15px; border-bottom: 3px solid var(--sky-blue); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
         .logo-img { height: 120px; }
         
-        .form-container { padding: 20px; max-width: 500px; margin: auto; }
+        .form-container { padding: 20px; max-width: 500px; margin: auto; box-sizing: border-box; }
         .input-group { margin-bottom: 20px; }
         label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px; text-transform: uppercase; }
         input[type="text"], input[type="email"], input[type="date"] { width: 100%; padding: 12px; border: 2px solid var(--sky-blue); border-radius: 8px; box-sizing: border-box; font-size: 16px; }
@@ -26,9 +25,8 @@
         .agreement-box { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid var(--sky-blue); margin-bottom: 20px; }
         .agreement-text { max-height: 100px; overflow-y: scroll; font-size: 11px; color: #666; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; line-height: 1.4; }
 
-        #sig-canvas { border: 2px solid var(--navy); background: white; border-radius: 8px; touch-action: none; cursor: crosshair; width: 100%; height: 150px; box-sizing: border-box; }
+        #sig-canvas { border: 2px solid var(--navy); background: white; border-radius: 8px; touch-action: none; width: 100%; height: 150px; box-sizing: border-box; }
         
-        /* Pricing Display */
         .price-summary { background: var(--navy); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; display: none; }
 
         /* UNIFORM ACTION BUTTON */
@@ -43,23 +41,25 @@
             font-weight: bold; 
             font-size: 18px; 
             margin-top: 30px; 
-            text-decoration: none; 
             text-align: center; 
-            box-sizing: border-box; /* Ensures padding doesn't widen the button */
-            transition: 0.3s; 
+            box-sizing: border-box; 
+            cursor: pointer;
+            opacity: 0.4;
+            pointer-events: none;
         }
-        .btn-clear { background: #888; color: white; border: none; padding: 10px; border-radius: 5px; font-size: 12px; cursor: pointer; }
+        .btn-clear { background: #888; color: white; border: none; padding: 10px; border-radius: 5px; font-size: 12px; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div id="access-denied" style="display:none; text-align:center; padding:100px 20px;">
     <h1>404 Not Found</h1>
+    <p>The requested URL was not found on this server.</p>
 </div>
 
 <div id="main-content" style="display:none;">
     <div class="header">
-        <a href="index.html"><img src="Bob&ReggieRentalsLLCLogo.png" class="logo-img" alt="Logo"></a>
+        <img src="Bob&ReggieRentalsLLCLogo.png" class="logo-img" alt="Logo">
     </div>
 
     <div class="form-container">
@@ -85,7 +85,7 @@
         </div>
 
         <div id="price-box" class="price-summary">
-            Total for your stay: <span id="display-total">$0.00</span>
+            Total for <span id="day-count">0</span> days: <span id="display-total">$0.00</span>
         </div>
 
         <label>Driver's License (Front & Back)</label>
@@ -107,21 +107,19 @@
         <div class="agreement-box">
             <div class="agreement-text">
                 <strong>Bob & Reggie Rentals LLC Master Agreement:</strong><br>
-                Renter agrees to pay market-equivalent Turo rates... [Terms Continued]
+                Renter agrees to pay market-equivalent rates for the specified dates... [Terms Continue]
             </div>
-            <label style="font-size: 13px; display: flex; align-items: flex-start;">
-                <input type="checkbox" id="terms-check" style="margin-right: 12px;">
+            <label style="font-size: 13px; display: flex; align-items: flex-start; font-weight: normal;">
+                <input type="checkbox" id="terms-check" style="margin-right: 12px;" onchange="togglePay()">
                 <span>I agree to the terms and conditions.</span>
             </label>
         </div>
 
         <label>Sign with Finger</label>
         <canvas id="sig-canvas"></canvas>
-        <div class="sig-buttons">
-            <button class="btn-clear" onclick="clearSig()">Clear Signature</button>
-        </div>
+        <button class="btn-clear" onclick="clearSig()">Clear Signature</button>
 
-        <button id="pay-button" class="btn-pay" onclick="handlePay()">PAY VIA SQUARE</button>
+        <button id="pay-button" class="btn-pay">PAY VIA SQUARE</button>
     </div>
 </div>
 
@@ -135,23 +133,28 @@
 
     // --- PRICING ENGINE ---
     function updatePrice() {
-        const start = new Date(document.getElementById('start-date').value);
-        const end = new Date(document.getElementById('end-date').value);
-        if (isNaN(start) || isNaN(end) || end < start) return;
+        const startVal = document.getElementById('start-date').value;
+        const endVal = document.getElementById('end-date').value;
+        if (!startVal || !endVal) return;
+
+        const start = new Date(startVal + "T00:00:00");
+        const end = new Date(endVal + "T00:00:00");
+        if (end < start) return;
 
         let total = 0;
         let days = 0;
         let current = new Date(start);
 
-        // Holiday List (Manual for 2026)
+        // Holidays 2026
         const holidays = ["2026-05-25", "2026-09-07", "2026-11-26", "2026-12-25"];
 
         while (current <= end) {
             days++;
-            const dayOfWeek = current.getDay(); // 0=Sun, 1=Mon...
+            const dayOfWeek = current.getDay(); // 0=Sun, 5=Fri, 6=Sat
             const dateStr = current.toISOString().split('T')[0];
 
-            if (dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6 || holidays.includes(dateStr)) {
+            // If Holiday OR Fri/Sat/Sun -> $0.75. Else (Mon-Thu) -> $0.50
+            if (holidays.includes(dateStr) || [0, 5, 6].includes(dayOfWeek)) {
                 total += 0.75;
             } else {
                 total += 0.50;
@@ -159,15 +162,23 @@
             current.setDate(current.getDate() + 1);
         }
 
-        // Apply Discounts
-        let multiplier = 1;
-        if (days >= 5) multiplier = 0.80;
-        else if (days === 4) multiplier = 0.85;
-        else if (days === 3) multiplier = 0.90;
+        // Apply Multi-Day Discounts
+        let discount = 1.0;
+        if (days >= 5) discount = 0.80;
+        else if (days === 4) discount = 0.85;
+        else if (days === 3) discount = 0.90;
 
-        const finalTotal = (total * multiplier).toFixed(2);
+        const finalTotal = (total * discount).toFixed(2);
         document.getElementById('price-box').style.display = 'block';
+        document.getElementById('day-count').innerText = days;
         document.getElementById('display-total').innerText = "$" + finalTotal;
+    }
+
+    function togglePay() {
+        const btn = document.getElementById('pay-button');
+        const checked = document.getElementById('terms-check').checked;
+        btn.style.opacity = checked ? "1" : "0.4";
+        btn.style.pointerEvents = checked ? "auto" : "none";
     }
 
     function openCam(id) { document.getElementById(id).click(); }
@@ -183,17 +194,23 @@
         }
     }
 
-    function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-
-    // Canvas setup logic... [Existing Sig Logic Here]
+    // Signature Logic
     const canvas = document.getElementById('sig-canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#1a2b3c';
-    // [Sign events omitted for brevity, identical to previous version]
+    let drawing = false;
+
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    canvas.addEventListener('touchstart', (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('touchmove', (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    canvas.addEventListener('touchend', () => drawing = false);
+    function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 </script>
+
 </body>
 </html>
