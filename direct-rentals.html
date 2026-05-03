@@ -118,9 +118,8 @@
         <label>Sign with Finger</label>
         <canvas id="sig-canvas"></canvas>
         <button class="btn-clear" onclick="clearSig()">Clear Signature</button>
-
-        <!-- ACTION BUTTON TRIGGER -->
-        <button id="pay-button" class="btn-pay">PAY VIA SQUARE</button>
+        <!-- Add the onclick event here -->
+        <button id="pay-button" class="btn-pay" onclick="processEverything()">PAY VIA SQUARE</button>
     </div>
 </div>
 
@@ -194,6 +193,12 @@
     // --- SIGNATURE CANVAS ---
     const canvas = document.getElementById('sig-canvas');
     const ctx = canvas.getContext('2d');
+    // This ensures the canvas resolution matches its display size
+canvas.width = canvas.offsetWidth;
+canvas.height = canvas.offsetHeight;
+ctx.lineWidth = 2;
+ctx.lineCap = 'round';
+ctx.strokeStyle = '#1a2b3c';
     let drawing = false;
 
     function getPos(e) {
