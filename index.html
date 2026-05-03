@@ -98,6 +98,14 @@
     </style>
 </head>
 <body>
+    <!-- 1. Locking others out -->
+    <div id="access-denied" style="display:none; text-align:center; padding:50px; font-family: sans-serif;">
+        <h1>Access Denied</h1>
+        <p>This is a private portal for Bob & Reggie Rentals LLC.</p>
+    </div>
+
+    <!-- 2. This is to ensure no one can see this part; this is closed after the submit section before the script-->
+    <div id="main-content" style="display:none;">
 
 <div class="header">
     <img src="Bob&ReggieRentalsLLCLogo.png" class="logo-img" alt="Logo">
@@ -140,9 +148,26 @@
 
 <div class="submit-area">
     <button class="btn-submit" onclick="submitPhotos()">SUBMIT TRIP PHOTOS</button>
+</div> 
 </div>
-
 <script>
+    // ---  This is the gate to ensure we have the lock key ---
+        (function() {
+            const authKey = 'br_rentals_authorized';
+            const mainContent = document.getElementById('main-content');
+            const accessDenied = document.getElementById('access-denied');
+
+            if (window.location.hash === '#authorize') {
+                localStorage.setItem(authKey, 'true');
+                history.replaceState("", document.title, window.location.pathname);
+            }
+
+            if (localStorage.getItem(authKey) === 'true') {
+                mainContent.style.display = 'block';
+            } else {
+                accessDenied.style.display = 'block';
+            }
+        })();
     let currentTripType = 'Pre-Trip';
 
     function setTripType(type, btn) {
