@@ -46,6 +46,14 @@
     </style>
 </head>
 <body>
+    <!-- 1. The "Cloak" Screen (Shows for unauthorized users) -->
+<div id="access-denied" style="display:none; text-align:center; padding:100px 20px; font-family: sans-serif;">
+    <h1>404 Not Found</h1>
+    <p>The requested URL was not found on this server.</p>
+</div>
+
+<!-- 2. The Main Content Wrapper (Hidden by default) -->
+<div id="main-content" style="display:none;">
 
 <div class="header">
     <a href="index.html"><img src="Bob&ReggieRentalsLLCLogo.png" class="logo-img" alt="Logo"></a>
@@ -111,8 +119,26 @@
     <!-- Square Checkout Link -->
     <a href="https://square.link/u/YOUR_LINK_HERE" id="pay-button" class="btn-pay">PAY VIA SQUARE</a>
 </div>
-
+</div>
 <script>
+    // --- AUTHORIZATION HANDSHAKE LOGIC ---
+    (function() {
+        const authKey = 'br_rentals_authorized';
+        const mainContent = document.getElementById('main-content');
+        const accessDenied = document.getElementById('access-denied');
+
+        if (window.location.hash === '#authorize') {
+            localStorage.setItem(authKey, 'true');
+            history.replaceState("", document.title, window.location.pathname);
+        }
+
+        if (localStorage.getItem(authKey) === 'true') {
+            mainContent.style.display = 'block';
+        } else {
+            accessDenied.style.display = 'block';
+        }
+    })();
+    
     function openCam(id) { document.getElementById(id).click(); }
     function pv(input, imgId) {
         if (input.files && input.files[0]) {
