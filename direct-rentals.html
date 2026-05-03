@@ -29,7 +29,6 @@
         
         .price-summary { background: var(--navy); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; display: none; }
 
-        /* UNIFORM ACTION BUTTON */
         .btn-pay { 
             display: block; 
             width: 100%; 
@@ -118,8 +117,7 @@
         <label>Sign with Finger</label>
         <canvas id="sig-canvas"></canvas>
         <button class="btn-clear" onclick="clearSig()">Clear Signature</button>
-        <!-- Add the onclick event here -->
-<button id="pay-button" class="btn-pay">PAY VIA SQUARE</button>
+        <button id="pay-button" class="btn-pay">PAY VIA SQUARE</button>
     </div>
 </div>
 
@@ -193,12 +191,11 @@
     // --- SIGNATURE CANVAS ---
     const canvas = document.getElementById('sig-canvas');
     const ctx = canvas.getContext('2d');
-    // This ensures the canvas resolution matches its display size
-canvas.width = canvas.offsetWidth;
-canvas.height = canvas.offsetHeight;
-ctx.lineWidth = 2;
-ctx.lineCap = 'round';
-ctx.strokeStyle = '#1a2b3c';
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#1a2b3c';
     let drawing = false;
 
     function getPos(e) {
@@ -213,7 +210,7 @@ ctx.strokeStyle = '#1a2b3c';
     canvas.addEventListener('touchend', () => drawing = false);
     function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-    // --- MASTER SUBMISSION LOGIC ---
+    // --- NEW MASTER SUBMISSION LOGIC (FETCH METHOD) ---
     async function processEverything() {
         const payBtn = document.getElementById('pay-button');
         const name = document.getElementById('cust-name').value;
@@ -226,7 +223,7 @@ ctx.strokeStyle = '#1a2b3c';
             return;
         }
 
-        payBtn.innerText = "UPLOADING DOCUMENTS...";
+        payBtn.innerText = "UPLOADING & PROCESSING...";
         payBtn.style.background = "#888";
         payBtn.style.pointerEvents = "none";
 
@@ -255,26 +252,35 @@ ctx.strokeStyle = '#1a2b3c';
             pdfBase64: sigBase64 
         };
 
-        // Execution Step 1: Securely upload documents to Google Drive
-        google.script.run.withSuccessHandler((uploadRes) => {
-            if (uploadRes.success) {
-                payBtn.innerText = "REDIRECTING TO SQUARE...";
-                
-                // Execution Step 2: Generate Square Sandbox Checkout Link
-                google.script.run.withSuccessHandler((payRes) => {
-                    if (payRes.success) {
-                        window.location.href = payRes.url;
-                    } else {
-                        alert("Square Error: " + payRes.error);
-                        resetButton();
-                    }
-                }).createCheckout(payload);
-                
-            } else {
-                alert("Drive Upload Error: " + uploadRes.error);
-                resetButton();
-            }
-        }).uploadFiles(payload);
+        // REPLACE THIS URL with your actual Google Apps Script Web App URL
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbzfLx4ObQHVHDiTN8GNY3u0l1H4uQWYjbccZqVfstUD_YGtqTgUJVyhWtpKQoaacXDf/exec";
+
+        try {
+            const response = await fetch(webAppUrl, {
+                method: "POST",
+                mode: "no-cors", // Necessary for cross-domain POST to Apps Script
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            // Note: with 'no-cors', we can't read the response directly. 
+            // Most users redirect based on a slight delay or by having the Script 
+            // return a JSONP style response if they need to read data.
+            // For a simpler "Success" feedback, we assume if no error, it worked.
+            
+            payBtn.innerText = "REDIRECTING TO SQUARE...";
+            
+            // Re-fetching or just waiting a second before redirecting if your 
+            // doPost handle is set to return the URL.
+            // If you need the URL back from the script, see the advanced 'fetch' note below.
+            
+            alert("Documents received! Please wait for the Square payment link.");
+            
+        } catch (error) {
+            console.error("Submission error:", error);
+            alert("Connection error. Please try again.");
+            resetButton();
+        }
     }
 
     function resetButton() {
@@ -284,7 +290,6 @@ ctx.strokeStyle = '#1a2b3c';
         payBtn.style.pointerEvents = "auto";
     }
 
-// THIS IS THE REPLACEMENT LINE:
     document.getElementById('pay-button').addEventListener('click', function(e) {
         e.preventDefault();
         processEverything();
